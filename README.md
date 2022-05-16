@@ -5,3 +5,8 @@
 pip install python-telegram-bot
 
 pip install requests
+
+
+```
+TOKEN= python main.py
+```
