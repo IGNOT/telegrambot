@@ -6,7 +6,7 @@ pip install python-telegram-bot
 
 pip install requests
 
-
+Для запуска бота через консоль:
 ```
 TOKEN= python main.py
 ```
