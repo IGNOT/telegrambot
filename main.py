@@ -1,7 +1,6 @@
 import os
 from telegram import (
     Update, # Благодаря этому происходит обновление текста, который пишет бот. Используется для отправки сообшений пользователю.
-    ForceReply,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
@@ -11,7 +10,6 @@ from telegram.ext import (
     CallbackContext, # Хранит информацию.
     CallbackQueryHandler,
     CommandHandler,
-    ContextTypes,
     ConversationHandler,
     Filters,
     MessageHandler,
@@ -19,7 +17,7 @@ from telegram.ext import (
     Updater,
 )
 from typing import Dict
-import requests
+import requests, emoji
 
 
 API_URL = 'http://127.0.0.1:8000/api'
@@ -28,7 +26,7 @@ CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3) # Три состояния д�
 
 reply_keyboard = [
     ['Фамилия', 'Имя'],
-    ['Группа', 'Дисциплина'],
+    ['Группа'],
     ['Готово'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True) # Кнопки из меню сообщений.
@@ -41,7 +39,6 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    """Start the conversation and ask user for input."""
     update.message.reply_text(
         "Заполните каждый пункт о себе, поочерёдно нажимая кнопки.",
         reply_markup=markup,
@@ -54,9 +51,6 @@ def custom_choice(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     update.message.reply_text(f'Введите поле "{text}":')
     context.user_data['choice'] = text # Запоминем, что ввёл пользователь.
-    # update.message.reply_text(
-    #     'Alright, please send me the category first, for example "Most impressive skill"'
-    # )
     return TYPING_REPLY
 
 
@@ -86,7 +80,7 @@ def received_information(update: Update, context: CallbackContext) -> int:
     text = update.message.text # То, что сейчас вводит пользователь.
     category = user_data['choice']
     user_data[category] = text # 'Игнатий' будет относиться к 'Имя'
-    del user_data['choice'] # Бот забывает ненужную часть информации о пользователе (Фамилия|Имя|Группа|Дисциплина).
+    del user_data['choice'] # Бот забывает ненужную часть информации о пользователе (Фамилия|Имя|Группа).
 
     update.message.reply_text(
         "Ваши данные:\n"
@@ -171,7 +165,7 @@ def courses(update: Update, context: CallbackContext):
     if "Группа" in user_data:
         msg = hello + f'\nКурсы для группы {user_data["Группа"]}:'
     else:
-        msg = hello + '\nВсе курсы:' # Если пользователь не ввёл группу, то показываются все курсы.
+        msg = hello + '\nВсе курсы, известные боту:' # Если пользователь не ввёл группу, то показываются все курсы.
     update.message.reply_markdown_v2(
         msg,
         reply_markup=courses_markup(context),
@@ -237,7 +231,7 @@ def lab_markup(id):
 
     message = course_description(course, teacher) + "\n"
 
-    message += f"Лабораторная {lab['number']}:\n\n"
+    message +=  emoji.emojize(":brain:") + f"Лабораторная {lab['number']}:\n\n"
 
     message += f"Дедлайн: {lab['deadline']}\n\n"
 
@@ -253,10 +247,9 @@ def lab_markup(id):
     return {"text": message, "reply_markup": InlineKeyboardMarkup(keyboard)}
 
 
-# Обработка нажатия любой кнопки.
+# Обработка нажатия кнопок.
 def button(update: Update, context: CallbackContext):
     query = update.callback_query
-
     query.answer()
 
     # if query.data == "navigation":
@@ -292,7 +285,7 @@ def main():
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.regex("^(Фамилия|Имя|Группа|Дисциплина)$"),
+                    Filters.regex("^(Фамилия|Имя|Группа)$"),
                     # Регулярное выражение для запуска функции custon_choice
                     custom_choice
                 ),

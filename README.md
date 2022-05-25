@@ -6,6 +6,8 @@ pip install python-telegram-bot
 
 pip install requests
 
+pip install emoji
+
 Для запуска бота через консоль:
 ```
 TOKEN= python main.py
