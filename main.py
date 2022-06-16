@@ -161,7 +161,10 @@ def courses(update: Update, context: CallbackContext):
     user_data = context.user_data # Для того, что пользователь ввёл в поле "Имя".
     user = update.effective_user # Telegram-nickname пользователя.
     # Умная система здоровается с пользователем по тому, что он ввёл в имя или по его Telegram-никнейму, если не введено первое.
-    hello = fr"Привет, {user_data.get('Имя', user.mention_markdown_v2())}\!"
+    nickname_exist = user.mention_markdown_v2()
+    if nickname_exist == None:
+        nickname_exist = "неизвестный пользователь"
+    hello = fr"Привет, {user_data.get('Имя', nickname_exist)}\!"
     if "Группа" in user_data:
         msg = hello + f'\nКурсы для группы {user_data["Группа"]}:'
     else:
